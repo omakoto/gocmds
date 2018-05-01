@@ -39,7 +39,10 @@ func realMain() int {
 	mu := sync.Mutex{} // Control output.
 	ways := 8 // Number of parallel goroutines.
 
-	ch := make(chan string, 8)
+	ch := make(chan string, ways * 2)
+	
+	wg := sync.WaitGroup{}
+	wg.Add(ways)
 
 	for i := 0; i < ways; i++ {
 		go func() {
@@ -63,6 +66,7 @@ func realMain() int {
 				fmt.Print("\n")
 				mu.Unlock()
 			}
+			wg.Done()
 		}()
 	}
 
@@ -75,6 +79,7 @@ func realMain() int {
 	for i := 0; i < ways; i++ {
 		ch <- ""
 	}
+	wg.Wait()
 
 	return 0
 }
