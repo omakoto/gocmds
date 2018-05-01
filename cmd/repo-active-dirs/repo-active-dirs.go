@@ -14,7 +14,6 @@ import (
 	"sync"
 	"bytes"
 	"sort"
-	"strings"
 	"fmt"
 )
 
@@ -85,12 +84,7 @@ func realMain() int {
 	wg.Wait()
 
 	// Sort and print
-	sort.Slice(list, func(a, b int) bool {
-		if strings.Compare(list[a], list[b]) < 0 {
-			return true
-		}
-		return false
-	})
+	sort.Strings(list)
 
 	// Print all.
 	for _, l := range list {
