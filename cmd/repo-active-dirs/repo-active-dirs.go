@@ -7,13 +7,15 @@ package main
 
 import (
 	"encoding/xml"
-	"fmt"
 	"github.com/omakoto/gaze/src/common"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
 	"bytes"
+	"sort"
+	"strings"
+	"fmt"
 )
 
 type Project struct {
@@ -34,13 +36,15 @@ func realMain() int {
 	common.Check(err, "Failed to read manifest.xml")
 
 	var man Manifest
-	xml.Unmarshal(manifest, &man)
+	common.Check(xml.Unmarshal(manifest, &man), "Failed to parse manifest.xml")
 
-	mu := sync.Mutex{} // Control output.
 	ways := 8 // Number of parallel goroutines.
 
+	mu := sync.Mutex{} // Protect list.
+	list := make([]string, 0, len(man.Projects));
+
 	ch := make(chan string, ways * 2)
-	
+
 	wg := sync.WaitGroup{}
 	wg.Add(ways)
 
@@ -62,8 +66,7 @@ func realMain() int {
 				}
 
 				mu.Lock()
-				fmt.Print(dir)
-				fmt.Print("\n")
+				list = append(list, dir)
 				mu.Unlock()
 			}
 			wg.Done()
@@ -80,6 +83,21 @@ func realMain() int {
 		ch <- ""
 	}
 	wg.Wait()
+
+	// Sort and print
+	sort.Slice(list, func(a, b int) bool {
+		if strings.Compare(list[a], list[b]) < 0 {
+			return true
+		}
+		return false
+	})
+
+	// Print all.
+	for _, l := range list {
+		fmt.Print(l)
+		fmt.Print("\n")
+	}
+
 
 	return 0
 }
