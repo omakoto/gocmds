@@ -1,3 +1,5 @@
+///bin/true; exec /usr/bin/env go run "$0" "$@"
+
 // repo-active-dirs
 // Find repo projects with one or more local branches and print them.
 
@@ -64,7 +66,7 @@ func realMain() int {
 		}()
 	}
 
-	// Read all projects 
+	// Read all projects
 	for _, p := range man.Projects {
 		// fmt.Print(filepath.Join(root, p.Path))
 		// fmt.Print("\n")
