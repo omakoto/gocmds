@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"os"
 	"github.com/omakoto/gaze/src/common"
 	"io/ioutil"
 	"path/filepath"
@@ -35,8 +34,10 @@ type Manifest struct {
 }
 
 func MustLoadManifest() (manifest *Manifest, root string) {
-	root = os.Getenv("ANDROID_BUILD_TOP")
-	common.Debugf("ANDROID_BUILD_TOP=%s\n", root)
+	//root = os.Getenv("ANDROID_BUILD_TOP")
+	//common.Debugf("ANDROID_BUILD_TOP=%s\n", root)
+
+	root = MustFindRepoTop(".")
 
 	// Find all projects.
 	manifestRaw, err := ioutil.ReadFile(filepath.Join(root, ".repo/manifest.xml"))
