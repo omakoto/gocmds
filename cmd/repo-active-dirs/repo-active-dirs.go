@@ -6,43 +6,25 @@
 package main
 
 import (
-	"encoding/xml"
-	"github.com/omakoto/gaze/src/common"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"sync"
 	"bytes"
-	"sort"
 	"fmt"
+	"github.com/omakoto/gaze/src/common"
+	"github.com/omakoto/gocmds/repo"
+	"io/ioutil"
+	"path/filepath"
+	"sort"
+	"sync"
 )
 
-type Project struct {
-	Path string `xml:"path,attr"`
-}
-
-type Manifest struct {
-	Projects []Project `xml:"project"`
-}
-
 func realMain() int {
-	// Find the top diir.
-	root := os.Getenv("ANDROID_BUILD_TOP")
-	common.Debugf("ANDROID_BUILD_TOP=%s", root)
-
-	// Find all projects.
-	manifest, err := ioutil.ReadFile(filepath.Join(root, ".repo/manifest.xml"))
-	common.Check(err, "Failed to read manifest.xml")
-
-	var man Manifest
-	common.Check(xml.Unmarshal(manifest, &man), "Failed to parse manifest.xml")
+	manifest, root := repo.MustLoadManifest()
 
 	ways := 8 // Number of parallel goroutines.
 
 	mu := sync.Mutex{} // Protect list.
-	list := make([]string, 0, len(man.Projects));
+	list := make([]string, 0, len(manifest.Projects))
 
-	ch := make(chan string, ways * 2)
+	ch := make(chan string, ways*2)
 
 	wg := sync.WaitGroup{}
 	wg.Add(ways)
@@ -73,7 +55,7 @@ func realMain() int {
 	}
 
 	// Read all projects
-	for _, p := range man.Projects {
+	for _, p := range manifest.Projects {
 		// fmt.Print(filepath.Join(root, p.Path))
 		// fmt.Print("\n")
 		ch <- p.Path
@@ -91,7 +73,6 @@ func realMain() int {
 		fmt.Print(l)
 		fmt.Print("\n")
 	}
-
 
 	return 0
 }
