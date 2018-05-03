@@ -2,7 +2,7 @@ package repo
 
 import (
 	"path/filepath"
-	"github.com/omakoto/gaze/src/common"
+	"github.com/omakoto/go-common/src/common"
 	"os"
 )
 

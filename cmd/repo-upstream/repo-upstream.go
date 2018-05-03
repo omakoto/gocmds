@@ -6,7 +6,7 @@
 package main
 
 import (
-	"github.com/omakoto/gaze/src/common"
+	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/gocmds/repo"
 	"os"
 	"path/filepath"

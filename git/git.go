@@ -3,7 +3,7 @@ package git
 import (
 	"os"
 	"path/filepath"
-	"github.com/omakoto/gaze/src/common"
+	"github.com/omakoto/go-common/src/common"
 	"fmt"
 )
 
