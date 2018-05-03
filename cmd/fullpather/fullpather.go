@@ -1,7 +1,6 @@
 package main
 
 import (
-
 	"github.com/d4l3k/go-pcre"
 	"fmt"
 )
