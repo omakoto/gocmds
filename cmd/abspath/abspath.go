@@ -3,20 +3,44 @@
 package main
 
 import (
-    "fmt"
-    "flag"
-    "path/filepath"
+	"fmt"
+	"github.com/omakoto/go-common/src/common"
+	"github.com/pborman/getopt/v2"
+	"os"
+	"path/filepath"
 )
 
-func main() {
-    flag.Parse()
+func init() {
+	getopt.SetUsage(usage)
+}
 
-    for _, file := range flag.Args() {
-        abs, err := filepath.Abs(file)
-        if err != nil {
-            panic(err)
-        }
-        fmt.Print(abs);
-        fmt.Print("\n");
-    }
+func usage() {
+	os.Stderr.WriteString(`
+abspath: Convert PATHs to absolute paths
+
+Usage: abspath PATH [...]
+
+`)
+	getopt.CommandLine.PrintOptions(os.Stderr)
+}
+
+func main() {
+	common.RunAndExit(realMain)
+}
+
+func realMain() int {
+	getopt.Parse()
+
+	ret := 0
+	for _, file := range getopt.Args() {
+		abs, err := filepath.Abs(file)
+		if err != nil {
+			common.Warnf("%s\n", err)
+			ret = 1
+			continue
+		}
+		fmt.Print(abs)
+		fmt.Print("\n")
+	}
+	return ret
 }

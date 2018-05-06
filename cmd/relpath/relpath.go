@@ -3,27 +3,48 @@
 package main
 
 import (
-    "fmt"
-    "flag"
-    "os"
-    "path/filepath"
+	"fmt"
+	"github.com/omakoto/go-common/src/common"
+	"github.com/pborman/getopt/v2"
+	"os"
+	"path/filepath"
 )
 
+func init() {
+	getopt.SetUsage(usage)
+}
+
+func usage() {
+	os.Stderr.WriteString(`
+relpath: Convert PATHs to relative paths
+
+Usage: relpath PATH [...]
+
+`)
+	getopt.CommandLine.PrintOptions(os.Stderr)
+}
+
 func main() {
-    flag.Parse()
+	common.RunAndExit(realMain)
+}
 
-    cwd, err := os.Getwd()
-    if err != nil {
-        panic(err)
-    }
+func realMain() int {
+	getopt.Parse()
 
-    for _, file := range flag.Args() {
-        rel, err := filepath.Rel(cwd, file)
-        if err != nil {
-            fmt.Fprintf(os.Stderr, "%s\n", err)
-            continue
-        }
-        fmt.Print(rel);
-        fmt.Print("\n");
-    }
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	ret := 0
+	for _, file := range getopt.Args() {
+		rel, err := filepath.Rel(cwd, file)
+		if err != nil {
+			common.Warnf("%s\n", err)
+			ret = 1
+			continue
+		}
+		fmt.Print(rel, "\n")
+	}
+	return ret
 }
