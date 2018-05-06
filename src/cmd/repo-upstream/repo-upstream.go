@@ -6,17 +6,17 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"github.com/omakoto/go-common/src/common"
+	"github.com/omakoto/gocmds/git"
 	"github.com/omakoto/gocmds/repo"
 	"os"
 	"path/filepath"
-	"github.com/omakoto/gocmds/git"
-	"fmt"
-	"flag"
 )
 
 var (
-	quiet = flag.Bool("q", false, "Quiet mode")
+	quiet  = flag.Bool("q", false, "Quiet mode")
 	origin = flag.Bool("o", false, "Only show the default source")
 )
 

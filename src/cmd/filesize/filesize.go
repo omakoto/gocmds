@@ -1,7 +1,7 @@
 ///bin/true; exec /usr/bin/env go run "$0" "$@"
 package main
 
-// Show file sizes in given directories.
+// Show sizes of all files under given directories.
 
 import (
 	"fmt"

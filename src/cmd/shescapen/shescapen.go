@@ -3,7 +3,7 @@ package main
 
 import (
 	"github.com/omakoto/go-common/src/common"
-	"github.com/omakoto/gocmds/cmd/shescapecommon"
+	"github.com/omakoto/gocmds/src/cmd/shescapecommon"
 	"os"
 )
 
@@ -12,6 +12,6 @@ func main() {
 }
 
 func realMain() int {
-	shescapecommon.ShescapeStdin(os.Args)
+	shescapecommon.ShescapeNoNewline(os.Args)
 	return 0
 }

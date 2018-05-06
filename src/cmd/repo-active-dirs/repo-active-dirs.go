@@ -42,7 +42,7 @@ func realMain() int {
 				if err != nil {
 					continue // Find not found or not readable.
 				}
-				if bytes.Index(data, []byte("[branch \"")) < 0 {
+				if !bytes.Contains(data, []byte("[branch \"")) {
 					continue // No local branches.
 				}
 

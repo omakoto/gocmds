@@ -1,10 +1,10 @@
 package repo
 
 import (
-	"path/filepath"
 	"github.com/omakoto/go-common/src/common"
-	"os"
 	"github.com/omakoto/go-common/src/fileutils"
+	"os"
+	"path/filepath"
 )
 
 const EnvBuildTop = "ANDROID_BUILD_TOP"

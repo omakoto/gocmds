@@ -1,10 +1,10 @@
 package repo
 
 import (
+	"encoding/xml"
 	"github.com/omakoto/go-common/src/common"
 	"io/ioutil"
 	"path/filepath"
-	"encoding/xml"
 )
 
 type Remote struct {

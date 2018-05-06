@@ -2,10 +2,10 @@
 package main
 
 import (
-	"github.com/omakoto/go-common/src/common"
 	"flag"
 	"fmt"
 	"github.com/d4l3k/go-pcre"
+	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/go-common/src/textio"
 )
 

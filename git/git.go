@@ -1,10 +1,10 @@
 package git
 
 import (
+	"fmt"
+	"github.com/omakoto/go-common/src/common"
 	"os"
 	"path/filepath"
-	"github.com/omakoto/go-common/src/common"
-	"fmt"
 )
 
 func FindGitTop(path string) (string, error) {

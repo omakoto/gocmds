@@ -4,7 +4,7 @@ package main
 import (
 	"fmt"
 	"github.com/omakoto/go-common/src/common"
-	"github.com/omakoto/gocmds/cmd/shescapecommon"
+	"github.com/omakoto/gocmds/src/cmd/shescapecommon"
 	"github.com/pborman/getopt/v2"
 )
 
@@ -21,12 +21,12 @@ func realMain() int {
 	getopt.Parse()
 
 	if !*fromStdin {
-		shescapecommon.ShescapeNoNewline(getopt.Args())
+		shescapecommon.UnshescapeNoNewline(getopt.Args())
 		if !*noNewline {
 			fmt.Println()
 		}
 	} else {
-		shescapecommon.ShescapeStdin(getopt.Args())
+		shescapecommon.UnshescapeStdin(getopt.Args())
 	}
 	return 0
 }

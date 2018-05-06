@@ -6,8 +6,8 @@
 package main
 
 import (
-	"github.com/omakoto/go-common/src/common"
 	"fmt"
+	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/gocmds/git"
 )
 

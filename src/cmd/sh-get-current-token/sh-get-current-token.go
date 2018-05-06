@@ -17,6 +17,8 @@ func main() {
 }
 
 func realMain() int {
+	getopt.Parse()
+
 	sh := shell.GetSupportedProxy()
 	common.OrFatalf(sh != nil, "Unsupported shell.\n")
 
@@ -25,7 +27,7 @@ func realMain() int {
 
 	s, ok := findToken(tokens, pos, *full, *unescape)
 	if ok {
-		fmt.Println(s, "\n")
+		fmt.Println(s)
 		return 0
 	}
 	return 1
