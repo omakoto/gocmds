@@ -12,6 +12,6 @@ func main() {
 }
 
 func realMain() int {
-	shescapecommon.ShescapeStdin(os.Args)
+	shescapecommon.ShescapeStdin(os.Args[1:])
 	return 0
 }
