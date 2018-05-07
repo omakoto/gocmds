@@ -12,6 +12,6 @@ func main() {
 }
 
 func realMain() int {
-	shescapecommon.ShescapeNoNewline(os.Args)
+	shescapecommon.ShescapeNoNewline(os.Args[1:])
 	return 0
 }
