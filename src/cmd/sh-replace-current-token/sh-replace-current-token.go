@@ -48,8 +48,14 @@ func doTransform(original string, pos int, newWord string, insert, escape bool) 
 }
 
 func insertWord(original string, pos int, newWord string) (string, int) {
-	ret := original[0:pos] + newWord + original[pos:]
-	pos += len(newWord)
+	var ret string
+	if pos <= len(original) {
+		ret = original[0:pos] + newWord + original[pos:]
+		pos += len(newWord)
+	} else {
+		ret = original + " " + newWord
+		pos = len(ret)
+	}
 
 	return ret, pos
 }

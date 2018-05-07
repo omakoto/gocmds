@@ -40,8 +40,13 @@ func TestFindToken(t *testing.T) {
 		{" abc  def", 0, false, false, "", false},
 		{" abc  def", 0, true, false, "", false},
 
+		{" abc  def", 10, false, false, "", false},
+		{" abc  def", 10, true, false, "", false},
+
 		{`"abc"\ 'def'`, 0, true, false, `"abc"\ 'def'`, true},
 		{`"abc"\ 'def'`, 0, true, true, `abc def`, true},
+		{`"abc"\ 'def'`, 6, false, false, `"abc"\`, true},
+		{`"abc"\ 'def'`, 5, false, true, `abc`, true},
 	}
 	for _, v := range inputs {
 		tokens := shell.SplitToTokens(v.source)
