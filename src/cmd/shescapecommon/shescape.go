@@ -18,7 +18,11 @@ func ShescapeNoNewline(args []string) {
 
 func ShescapeStdin(files []string) {
 	err := textio.ReadFiles(files, func(line []byte, lineNo int, filename string) error {
-		fmt.Print(string(shell.EscapeBytes(textio.Chomp(line))), "\n")
+		line, nl := textio.Chomped(line)
+		fmt.Print(string(shell.EscapeBytes(line)))
+		if nl {
+			fmt.Print("\n")
+		}
 		return nil
 	})
 	common.Check(err, "Unable to read file")
