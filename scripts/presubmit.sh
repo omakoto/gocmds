@@ -16,4 +16,4 @@ go test -v -race ./...                   # Run all the tests with the race detec
 echo "Running extra checks..."
 go vet ./...                             # go vet is the official Go static analyzer
 megacheck ./...                          # "go vet on steroids" + linter
-golint -set_exit_status src/... | grep -v -P '\bexported (type|func|function|method|const|var)\b'
+golint -set_exit_status src/... #| grep -v -P '\bexported (type|func|function|method|const|var)\b'
