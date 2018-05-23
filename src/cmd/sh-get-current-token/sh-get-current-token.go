@@ -37,8 +37,15 @@ func findToken(tokens []shell.Token, pos int, full, unescae bool) (string, bool)
 	common.Debugf("Pos=%d\n", pos)
 	common.Dump("Tokens=", tokens)
 
+	// 0     10    20   30
+	// aaa   bbb   ccc  ddd
+	//           ^--- 18
+
 	for _, token := range tokens {
-		if pos < token.Index || pos > token.Index+len(token.Word) {
+		if token.Index > pos {
+			break
+		}
+		if pos > token.Index+len(token.Word) {
 			continue
 		}
 		var t string

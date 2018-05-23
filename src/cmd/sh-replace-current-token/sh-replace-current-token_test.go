@@ -35,3 +35,41 @@ func TestFindToken_insert(t *testing.T) {
 		assert.Equal(t, v.expectedPos, pos, msg)
 	}
 }
+
+func TestFindToken_replace(t *testing.T) {
+	inputs := []struct {
+		source string
+		pos    int
+
+		newWord string
+
+		unescape bool
+
+		expected    string
+		expectedPos int
+	}{
+		{`abc def`, 0, `XY`, false, `XY def`, 2},
+		{`abc def`, 1, `XY`, false, `XY def`, 2},
+		{`abc def`, 2, `XY`, false, `XY def`, 2},
+		{`abc def`, 3, `XY`, false, `XY def`, 2},
+		{`abc def`, 4, `XY`, false, `abc XY`, 6},
+		{`abc def`, 5, `XY`, false, `abc XY`, 6},
+		{`abc def`, 6, `XY`, false, `abc XY`, 6},
+		{`abc def`, 7, `XY`, false, `abc XY`, 6},
+		{`abc def`, 8, `XY`, false, `abc def XY`, 10},
+		{`abc def`, 9, `XY`, false, `abc def XY`, 10},
+		{`abc    def`, 4, `XY`, false, `abc XY   def`, 6},
+		{`abc    def`, 5, `XY`, false, `abc  XY  def`, 7},
+		{`abc    def`, 6, `XY`, false, `abc   XY def`, 8},
+		{`abc    def`, 7, `XY`, false, `abc    XY`, 9},
+		{`abc def`, 1, `X  Y`, false, `X  Y def`, 4},
+		{`abc def`, 1, `X  Y`, true, `'X  Y' def`, 6},
+	}
+	for _, v := range inputs {
+		result, pos := doTransform(v.source, v.pos, v.newWord, false, v.unescape)
+
+		msg := fmt.Sprintf("Source=%s Pos=%d Word=%s Unescape=%v", v.source, v.pos, v.newWord, v.unescape)
+		assert.Equal(t, v.expected, result, msg)
+		assert.Equal(t, v.expectedPos, pos, msg)
+	}
+}
