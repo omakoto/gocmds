@@ -1,3 +1,5 @@
+// Intended to be used with "bind -x" on bash.
+// Replace the current token in the command line with a given string.
 package main
 
 import (

@@ -1,3 +1,21 @@
+// Intended to be used with "bind -x" on bash.
+// Prints the current token in stdout.
+// Example: When the command line is "less  /etc/fstab", and when the cursor is at...
+// less  /etc/fstab
+// ^1 ^2   ^3  ^4
+// - ^1:
+//      With -f: "less"
+//        No -f: ""
+// - ^2:
+//      With -f: "less"
+//        No -f: "less"
+// - ^3:
+//      With -f: "/etc/fstab"
+//        No -f: "/e"
+// - ^4:
+//      With -f: "/etc/fstab"
+//        No -f: "/etc/fstab"
+
 package main
 
 import (
