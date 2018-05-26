@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"fmt"
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/go-common/src/fileutils"
 	"os"
@@ -9,23 +10,30 @@ import (
 
 const EnvBuildTop = "ANDROID_BUILD_TOP"
 
-func MustFindRepoTop(path string) string {
+func FindRepoTop(path string) (string, error) {
 	atop := os.Getenv(EnvBuildTop)
 
 	path, err := filepath.Abs(path)
-	common.Check(err, "Abs() failed")
+	if err != nil {
+		return "", err
+	}
 	for {
-		common.Debugf("path=%s\n", path)
 		s, err := os.Stat(filepath.Join(path, ".repo"))
 		if err == nil && s.IsDir() {
 			if atop != "" && !fileutils.SamePath(atop, path) {
-				common.Fatal("Not in " + EnvBuildTop)
+				return "", fmt.Errorf("not in $%s", EnvBuildTop)
 			}
-			return path
+			return path, nil
 		}
 		if path == "/" {
-			common.Fatal("Repo top directory not found")
+			return "", fmt.Errorf("repo top directory not found")
 		}
 		path = filepath.Dir(path)
 	}
+}
+
+func MustFindRepoTop(path string) string {
+	ret, err := FindRepoTop(path)
+	common.Check(err, "Not in repo")
+	return ret
 }

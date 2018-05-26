@@ -3,6 +3,7 @@ package repo
 import (
 	"encoding/xml"
 	"github.com/omakoto/go-common/src/common"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"path/filepath"
 )
@@ -33,17 +34,28 @@ type Manifest struct {
 	Projects []Project `xml:"project"`
 }
 
-func MustLoadManifest() (manifest *Manifest, root string) {
-	//root = os.Getenv("ANDROID_BUILD_TOP")
-	//common.Debugf("ANDROID_BUILD_TOP=%s\n", root)
-
-	root = MustFindRepoTop(".")
+func LoadManifest() (manifest *Manifest, root string, err error) {
+	root, err = FindRepoTop(".")
+	if err != nil {
+		return nil, "", err
+	}
 
 	// Find all projects.
 	manifestRaw, err := ioutil.ReadFile(filepath.Join(root, ".repo/manifest.xml"))
-	common.Check(err, "Failed to read manifest.xml")
+	if err != nil {
+		return nil, "", errors.Wrap(err, "failed to read manifest.xml")
+	}
 
 	manifest = &Manifest{}
-	common.Check(xml.Unmarshal(manifestRaw, manifest), "Failed to parse manifest.xml")
+	err = xml.Unmarshal(manifestRaw, manifest)
+	if err != nil {
+		return nil, "", errors.Wrap(err, "failed to parse manifest.xml")
+	}
+	return
+}
+
+func MustLoadManifest() (manifest *Manifest, root string) {
+	manifest, root, err := LoadManifest()
+	common.Check(err, "Not in repo")
 	return
 }

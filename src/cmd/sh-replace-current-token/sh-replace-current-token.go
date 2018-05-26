@@ -3,11 +3,11 @@
 package main
 
 import (
+	"bytes"
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/go-common/src/shell"
 	"github.com/pborman/getopt/v2"
 	"strings"
-	"bytes"
 )
 
 var (
@@ -83,7 +83,7 @@ func replaceWord(original string, pos int, newWord string) (string, int) {
 
 		// Adjust the indexes of the following tokens
 		lenDelta := len(newWord) - len(token.Word)
-		for j:= i + 1; j < len(tokens); j++ {
+		for j := i + 1; j < len(tokens); j++ {
 			tokens[j].Index += lenDelta
 		}
 		tokens[i] = shell.Token{newWord, token.Index}
@@ -98,7 +98,7 @@ func replaceWord(original string, pos int, newWord string) (string, int) {
 	}
 
 	ret := bytes.Buffer{}
-	for _, token := range(tokens) {
+	for _, token := range tokens {
 		for ret.Len() < token.Index {
 			ret.WriteByte(' ')
 		}
