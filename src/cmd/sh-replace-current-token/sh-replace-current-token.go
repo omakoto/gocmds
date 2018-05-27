@@ -86,7 +86,7 @@ func replaceWord(original string, pos int, newWord string) (string, int) {
 		for j := i + 1; j < len(tokens); j++ {
 			tokens[j].Index += lenDelta
 		}
-		tokens[i] = shell.Token{newWord, token.Index}
+		tokens[i] = shell.Token{Word: newWord, Index: token.Index}
 		newPos = token.Index + len(newWord)
 
 		found = true
