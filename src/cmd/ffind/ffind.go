@@ -177,7 +177,7 @@ func listCachedDir(cacheFile, dir string) (avail bool, files, dirs []string) {
 		n, err := b.ReadBytes('\n')
 		common.Check(err, errFormat)
 
-		dirs = append(files, string(bytes.TrimRight(n, "\n")))
+		dirs = append(dirs, string(bytes.TrimRight(n, "\n")))
 	}
 
 	return true, files, dirs
