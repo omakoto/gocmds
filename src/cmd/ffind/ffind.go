@@ -97,6 +97,8 @@ func listDir(dir string) (files, dirs []string, err error) {
 		common.Warnf("Unable to open %s\n", dir)
 		return nil, nil, nil
 	}
+	defer d.Close()
+
 	children, err := d.Readdirnames(-1)
 	if err != nil {
 		common.Warnf("Unable to readdir %s\n", dir)
@@ -131,18 +133,21 @@ func listCachedDir(cacheFile, dir string) (avail bool, files, dirs []string) {
 	// See if valid cache.
 	scache, err := os.Stat(cacheFile)
 	if err != nil {
+		common.Debugf("Cache %s doesn't exist", cacheFile)
 		return false, nil, nil
 	}
 	sdir, err := os.Stat(dir)
 	if err != nil {
+		common.Debugf("Dir %s doesn't exist\n", dir)
 		return false, nil, nil
 	}
 	if scache.ModTime().Before(sdir.ModTime()) {
+		common.Debugf("Cache %s older than %s\n", cacheFile, dir)
 		return false, nil, nil
 	}
 	in, err := os.Open(cacheFile)
-	common.Check(err, "unable to open cache file")
-
+	common.Check(err, "unable to open cache file\n")
+	defer in.Close()
 
 	// Cache valid, read it and return.
 
@@ -190,6 +195,7 @@ func mustWriteCache(cacheFile string, files, dirs []string) {
 
 	out, err := os.OpenFile(cacheFile, os.O_WRONLY|os.O_CREATE, 0500)
 	common.Checkf(err, "unable to open cache file %s", cacheFile)
+	defer out.Close()
 
 	b := bufio.NewWriter(out)
 
@@ -208,4 +214,6 @@ func mustWriteCache(cacheFile string, files, dirs []string) {
 		b.WriteByte('\n')
 	}
 	b.Flush()
+
+	common.Debugf("Wrote cache file %s\n", cacheFile)
 }
