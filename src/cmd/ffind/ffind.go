@@ -5,7 +5,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"github.com/omakoto/go-common/src/common"
 	"github.com/pborman/getopt/v2"
 	"os"
@@ -24,6 +23,8 @@ var (
 	showDiris = getopt.BoolLong("dir", 'd', "Print directories only")
 
 	cacheDir = getopt.StringLong("cache-dir", 'c', getDefaultCachedDir(), "Specify cache directory")
+
+	out *bufio.Writer
 )
 
 func main() {
@@ -37,6 +38,9 @@ func realMain() int {
 		*showFiles = true
 		*showDiris = true
 	}
+
+	out = bufio.NewWriter(os.Stdout)
+	defer out.Flush()
 
 	err := findDirs(getopt.Args(), *showFiles, *showDiris)
 	common.Check(err, "error")
@@ -57,6 +61,11 @@ func findDirs(dirs []string, showFiles, showDirs bool) error {
 	return nil
 }
 
+func printLine(s string) {
+	out.WriteString(s)
+	out.WriteByte('\n')
+}
+
 func findDir(dir string, showFiles, showDirs bool) error {
 	files, dirs, err := listDir(dir)
 	if err != nil {
@@ -65,12 +74,12 @@ func findDir(dir string, showFiles, showDirs bool) error {
 
 	if showDirs {
 		for _, e := range dirs {
-			fmt.Print(e, "\n")
+			printLine(e)
 		}
 	}
 	if showFiles {
 		for _, e := range files {
-			fmt.Print(e, "\n")
+			printLine(e)
 		}
 	}
 	for _, e := range dirs {
