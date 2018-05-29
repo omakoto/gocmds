@@ -3,28 +3,29 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"github.com/omakoto/go-common/src/common"
+	"github.com/omakoto/gocmds/src/cmd/ffind/printer"
 	"github.com/pborman/getopt/v2"
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"sort"
-	"strconv"
+	"sync"
 )
-
-func getDefaultCachedDir() string {
-	return path.Join(os.Getenv("HOME"), ".ffind")
-}
 
 var (
 	showFiles = getopt.BoolLong("file", 'f', "Print files only")
-	showDiris = getopt.BoolLong("dir", 'd', "Print directories only")
+	showDirs  = getopt.BoolLong("dir", 'd', "Print directories only")
 
-	cacheDir = getopt.StringLong("cache-dir", 'c', getDefaultCachedDir(), "Specify cache directory")
+	quiet = getopt.BoolLong("quiet", 'q', "Don't show warnings")
 
-	out *bufio.Writer
+	para = getopt.IntLong("para", 'j', runtime.NumCPU(), "Number of goroutines")
+
+	ch = make(chan string, 1024*1024)
+
+	numBacklog = 0
+	cond       = sync.NewCond(&sync.Mutex{})
 )
 
 func main() {
@@ -33,85 +34,93 @@ func main() {
 
 func realMain() int {
 	getopt.Parse()
+	defer printer.Flush()
 
-	if !(*showFiles || *showDiris) {
+	common.Quiet = *quiet
+
+	if !(*showFiles || *showDirs) {
 		*showFiles = true
-		*showDiris = true
+		*showDirs = true
 	}
 
-	out = bufio.NewWriter(os.Stdout)
-	defer out.Flush()
+	common.Debugf("-j=%d\n", *para)
 
-	err := findDirs(getopt.Args(), *showFiles, *showDiris)
-	common.Check(err, "error")
+	for i := 0; i < *para; i++ {
+		go func() {
+			for {
+				dir := <-ch
+				common.Debugf("Pop:  %s\n", dir)
+				doFindDir(dir)
+
+				cond.L.Lock()
+				numBacklog--
+				common.Debugf("Done: %s [%d]\n", dir, numBacklog)
+				if numBacklog <= 0 {
+					cond.Signal()
+				}
+				cond.L.Unlock()
+			}
+		}()
+	}
+
+	if len(getopt.Args()) == 0 {
+		dir, err := os.Getwd()
+		common.Check(err, "Getwd failed")
+
+		findDir(dir)
+	} else {
+		for _, dir := range getopt.Args() {
+			dir, err := filepath.Abs(dir)
+			common.Check(err, "Abs failed")
+
+			findDir(dir)
+		}
+	}
+
+	cond.L.Lock()
+	if numBacklog > 0 {
+		cond.Wait()
+	}
+	cond.L.Unlock()
+
 	return 0
 }
 
-func findDirs(dirs []string, showFiles, showDirs bool) error {
-	for _, dir := range dirs {
-		dir, err := filepath.Abs(dir)
-		if err != nil {
-			return err
-		}
-		err = findDir(dir, showFiles, showDirs)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+func findDir(dir string) {
+	cond.L.Lock()
+	numBacklog++
+	common.Debugf("Push: %s [%d]\n", dir, numBacklog)
+	cond.L.Unlock()
+
+	ch <- dir
 }
 
-func printLine(s string) {
-	out.WriteString(s)
-	out.WriteByte('\n')
-}
+func doFindDir(dir string) {
+	files, dirs := listDir(dir)
 
-func findDir(dir string, showFiles, showDirs bool) error {
-	files, dirs, err := listDir(dir)
-	if err != nil {
-		return err
+	if *showDirs {
+		printer.PrintStrings(dirs)
 	}
-
-	if showDirs {
-		for _, e := range dirs {
-			printLine(e)
-		}
-	}
-	if showFiles {
-		for _, e := range files {
-			printLine(e)
-		}
+	if *showFiles {
+		printer.PrintStrings(files)
 	}
 	for _, e := range dirs {
-		err = findDir(e, showFiles, showDirs)
-		if err != nil {
-			return err
-		}
+		findDir(e)
 	}
-	return nil
 }
 
-func listDir(dir string) (files, dirs []string, err error) {
-	cacheFile := path.Join(*cacheDir, dir[1:], "ffind-cache.txt")
-
-	// If already cached, just return it.
-	avail, files, dirs := listCachedDir(cacheFile, dir)
-	if avail {
-		return
-	}
-
-	// Not cached.
+func listDir(dir string) (files, dirs []string) {
 	d, err := os.Open(dir)
 	if err != nil {
 		common.Warnf("Unable to open %s\n", dir)
-		return nil, nil, nil
+		return nil, nil
 	}
 	defer d.Close()
 
 	children, err := d.Readdirnames(-1)
 	if err != nil {
 		common.Warnf("Unable to readdir %s\n", dir)
-		return nil, nil, nil
+		return nil, nil
 	}
 
 	sort.Strings(children)
@@ -132,97 +141,5 @@ func listDir(dir string) (files, dirs []string, err error) {
 			files = append(files, p)
 		}
 	}
-
-	mustWriteCache(cacheFile, files, dirs)
-
 	return
-}
-
-func listCachedDir(cacheFile, dir string) (avail bool, files, dirs []string) {
-	// See if valid cache.
-	scache, err := os.Stat(cacheFile)
-	if err != nil {
-		common.Debugf("Cache %s doesn't exist", cacheFile)
-		return false, nil, nil
-	}
-	sdir, err := os.Stat(dir)
-	if err != nil {
-		common.Debugf("Dir %s doesn't exist\n", dir)
-		return false, nil, nil
-	}
-	if scache.ModTime().Before(sdir.ModTime()) {
-		common.Debugf("Cache %s older than %s\n", cacheFile, dir)
-		return false, nil, nil
-	}
-	in, err := os.Open(cacheFile)
-	common.Check(err, "unable to open cache file\n")
-	defer in.Close()
-
-	// Cache valid, read it and return.
-
-	const errFormat = "cache file format error"
-
-	b := bufio.NewReader(in)
-
-	readInt := func() int {
-		n, err := b.ReadBytes('\n')
-		common.Check(err, errFormat)
-
-		i, err := strconv.ParseInt(string(bytes.TrimRight(n, "\n")), 10, 32)
-		common.Check(err, errFormat)
-
-		return int(i)
-	}
-
-	numFiles := readInt()
-	numDirs := readInt()
-
-	files = make([]string, 0, numFiles)
-	dirs = make([]string, 0, numDirs)
-
-	for i := 0; i < int(numFiles); i++ {
-		n, err := b.ReadBytes('\n')
-		common.Check(err, errFormat)
-
-		files = append(files, string(bytes.TrimRight(n, "\n")))
-	}
-
-	for i := 0; i < int(numDirs); i++ {
-		n, err := b.ReadBytes('\n')
-		common.Check(err, errFormat)
-
-		dirs = append(dirs, string(bytes.TrimRight(n, "\n")))
-	}
-
-	return true, files, dirs
-}
-
-func mustWriteCache(cacheFile string, files, dirs []string) {
-	dir := path.Dir(cacheFile)
-	err := os.MkdirAll(dir, 0700)
-	common.Checkf(err, "unable to create cache directory %s", dir)
-
-	out, err := os.OpenFile(cacheFile, os.O_WRONLY|os.O_CREATE, 0500)
-	common.Checkf(err, "unable to open cache file %s", cacheFile)
-	defer out.Close()
-
-	b := bufio.NewWriter(out)
-
-	b.WriteString(strconv.Itoa(len(files)))
-	b.WriteByte('\n')
-	b.WriteString(strconv.Itoa(len(dirs)))
-	b.WriteByte('\n')
-
-	for _, f := range files {
-		b.WriteString(f)
-		b.WriteByte('\n')
-	}
-
-	for _, d := range dirs {
-		b.WriteString(d)
-		b.WriteByte('\n')
-	}
-	b.Flush()
-
-	common.Debugf("Wrote cache file %s\n", cacheFile)
 }
