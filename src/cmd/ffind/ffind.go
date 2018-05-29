@@ -8,7 +8,6 @@ import (
 	"github.com/pborman/getopt/v2"
 	"os"
 	"path"
-	"path/filepath"
 	"runtime"
 	"sort"
 	"sync"
@@ -80,9 +79,6 @@ func realMain() int {
 		findDir(dir)
 	} else {
 		for _, dir := range getopt.Args() {
-			dir, err := filepath.Abs(dir)
-			common.Check(err, "Abs failed")
-
 			findDir(dir)
 		}
 	}
