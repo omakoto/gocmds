@@ -20,7 +20,7 @@ var (
 
 	quiet = getopt.BoolLong("quiet", 'q', "Don't show warnings")
 
-	para = getopt.IntLong("para", 'j', runtime.NumCPU(), "Number of goroutines")
+	para = getopt.IntLong("para", 'j', runtime.NumCPU()*4	, "Number of goroutines")
 
 	ch = make(chan string, 1024*1024)
 
@@ -43,18 +43,18 @@ func realMain() int {
 		*showDirs = true
 	}
 
-	common.Debugf("-j=%d\n", *para)
+	//common.Debugf("-j=%d\n", *para)
 
 	for i := 0; i < *para; i++ {
 		go func() {
 			for {
 				dir := <-ch
-				common.Debugf("Pop:  %s\n", dir)
+				//common.Debugf("Pop:  %s\n", dir)
 				doFindDir(dir)
 
 				cond.L.Lock()
 				numBacklog--
-				common.Debugf("Done: %s [%d]\n", dir, numBacklog)
+				//common.Debugf("Done: %s [%d]\n", dir, numBacklog)
 				if numBacklog <= 0 {
 					cond.Signal()
 				}
@@ -89,7 +89,7 @@ func realMain() int {
 func findDir(dir string) {
 	cond.L.Lock()
 	numBacklog++
-	common.Debugf("Push: %s [%d]\n", dir, numBacklog)
+	//common.Debugf("Push: %s [%d]\n", dir, numBacklog)
 	cond.L.Unlock()
 
 	ch <- dir
