@@ -14,13 +14,23 @@ import (
 	"sync"
 )
 
+const maxPara = 32
+
+func defaultPara() int {
+	v := runtime.NumCPU() * 4
+	if v < maxPara {
+		return v
+	}
+	return maxPara
+}
+
 var (
 	showFiles = getopt.BoolLong("file", 'f', "Print files only")
 	showDirs  = getopt.BoolLong("dir", 'd', "Print directories only")
 
 	quiet = getopt.BoolLong("quiet", 'q', "Don't show warnings")
 
-	para = getopt.IntLong("para", 'j', runtime.NumCPU()*4	, "Number of goroutines")
+	para = getopt.IntLong("para", 'j', defaultPara(), "Number of goroutines")
 
 	ch = make(chan string, 1024*1024)
 
@@ -43,7 +53,7 @@ func realMain() int {
 		*showDirs = true
 	}
 
-	//common.Debugf("-j=%d\n", *para)
+	common.Debugf("-j=%d\n", *para)
 
 	for i := 0; i < *para; i++ {
 		go func() {
