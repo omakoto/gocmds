@@ -31,7 +31,7 @@ var (
 
 	para = getopt.IntLong("para", 'j', defaultPara(), "Number of goroutines")
 
-	ch = make(chan string, 1024*1024)
+	ch = make(chan string, 100*1024)
 
 	numBacklog = 0
 	cond       = sync.NewCond(&sync.Mutex{})
@@ -39,6 +39,27 @@ var (
 
 func main() {
 	common.RunAndExit(realMain)
+}
+
+func startWorker() {
+	go func() {
+		files := make([]string, 0, 1024)
+		dirs := make([]string, 0, 1024)
+
+		for {
+			dir := <-ch
+			common.Debugf("Pop:  %s\n", dir)
+			doFindDir(dir, files, dirs)
+
+			cond.L.Lock()
+			numBacklog--
+			common.Debugf("Done: %s [%d]\n", dir, numBacklog)
+			if numBacklog <= 0 {
+				cond.Signal()
+			}
+			cond.L.Unlock()
+		}
+	}()
 }
 
 func realMain() int {
@@ -55,31 +76,17 @@ func realMain() int {
 	common.Debugf("-j=%d\n", *para)
 
 	for i := 0; i < *para; i++ {
-		go func() {
-			for {
-				dir := <-ch
-				//common.Debugf("Pop:  %s\n", dir)
-				doFindDir(dir)
-
-				cond.L.Lock()
-				numBacklog--
-				//common.Debugf("Done: %s [%d]\n", dir, numBacklog)
-				if numBacklog <= 0 {
-					cond.Signal()
-				}
-				cond.L.Unlock()
-			}
-		}()
+		startWorker()
 	}
 
 	if len(getopt.Args()) == 0 {
 		dir, err := os.Getwd()
 		common.Check(err, "Getwd failed")
 
-		findDir(dir)
+		pushDir(dir)
 	} else {
 		for _, dir := range getopt.Args() {
-			findDir(dir)
+			pushDir(dir)
 		}
 	}
 
@@ -92,17 +99,34 @@ func realMain() int {
 	return 0
 }
 
-func findDir(dir string) {
+func pushDir(dir string) {
 	cond.L.Lock()
+	common.Debugf("Push: %s [%d]\n", dir, numBacklog)
 	numBacklog++
-	//common.Debugf("Push: %s [%d]\n", dir, numBacklog)
 	cond.L.Unlock()
 
-	ch <- dir
+	for {
+		select {
+		case ch <- dir:
+			return
+		default:
+			startWorker() // Just create more workers when buffer is full.
+		}
+	}
 }
 
-func doFindDir(dir string) {
-	files, dirs := listDir(dir)
+func clearStringSlice(s []string) []string {
+	for i := 0; i < len(s); i++ {
+		s[i] = ""
+	}
+	return s[:0]
+}
+
+func doFindDir(dir string, files, dirs []string) {
+	files = clearStringSlice(files)
+	dirs = clearStringSlice(dirs)
+
+	files, dirs = listDir(dir, files, dirs)
 
 	if *showDirs {
 		printer.PrintStrings(dirs)
@@ -111,31 +135,29 @@ func doFindDir(dir string) {
 		printer.PrintStrings(files)
 	}
 	for _, e := range dirs {
-		findDir(e)
+		pushDir(e)
 	}
 }
 
-func listDir(dir string) (files, dirs []string) {
+func listDir(dir string, files, dirs []string) ([]string, []string) {
 	d, err := os.Open(dir)
 	if err != nil {
 		common.Warnf("Unable to open %s\n", dir)
-		return nil, nil
+		return files, dirs
 	}
 	defer d.Close()
 
 	children, err := d.Readdirnames(-1)
 	if err != nil {
 		common.Warnf("Unable to readdir %s\n", dir)
-		return nil, nil
+		return files, dirs
 	}
 
 	sort.Strings(children)
 
-	files = make([]string, 0, len(children))
-	dirs = make([]string, 0, len(children))
-
 	for _, c := range children {
 		p := path.Join(dir, c)
+		common.Debugf("  %s\n", p)
 		s, err := os.Stat(p)
 		if err != nil {
 			common.Warnf("Unable to stat %s\n", p)
@@ -147,5 +169,5 @@ func listDir(dir string) (files, dirs []string) {
 			files = append(files, p)
 		}
 	}
-	return
+	return files, dirs
 }
