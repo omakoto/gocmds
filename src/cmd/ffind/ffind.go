@@ -48,12 +48,12 @@ func startWorker() {
 
 		for {
 			dir := <-ch
-			common.Debugf("Pop:  %s\n", dir)
+			//common.Debugf("Pop:  %s\n", dir)
 			doFindDir(dir, files, dirs)
 
 			cond.L.Lock()
 			numBacklog--
-			common.Debugf("Done: %s [%d]\n", dir, numBacklog)
+			//common.Debugf("Done: %s [%d]\n", dir, numBacklog)
 			if numBacklog <= 0 {
 				cond.Signal()
 			}
@@ -64,7 +64,6 @@ func startWorker() {
 
 func realMain() int {
 	getopt.Parse()
-	defer printer.Flush()
 
 	common.Quiet = *quiet
 
@@ -101,7 +100,7 @@ func realMain() int {
 
 func pushDir(dir string) {
 	cond.L.Lock()
-	common.Debugf("Push: %s [%d]\n", dir, numBacklog)
+	//common.Debugf("Push: %s [%d]\n", dir, numBacklog)
 	numBacklog++
 	cond.L.Unlock()
 
