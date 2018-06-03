@@ -1,7 +1,6 @@
 package shescapecommon
 
 import (
-	"fmt"
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/go-common/src/shell"
 	"github.com/omakoto/go-common/src/textio"
@@ -10,16 +9,17 @@ import (
 func ShescapeNoNewline(args []string) {
 	for i, arg := range args {
 		if i > 0 {
-			fmt.Print(" ")
+			textio.BufferedStdout.WriteByte(' ')
 		}
-		fmt.Print(shell.Escape(arg))
+		textio.BufferedStdout.WriteString(shell.Escape(arg))
 	}
 }
 
 func ShescapeStdin(files []string) {
 	err := textio.ReadFiles(files, func(line []byte, lineNo int, filename string) error {
 		line, nl := textio.Chomped(line)
-		fmt.Print(string(shell.EscapeBytes(line)), string(nl))
+		textio.BufferedStdout.Write(shell.EscapeBytes(line))
+		textio.BufferedStdout.Write(nl)
 		return nil
 	})
 	common.Check(err, "Unable to read file")
@@ -28,16 +28,17 @@ func ShescapeStdin(files []string) {
 func UnshescapeNoNewline(args []string) {
 	for i, arg := range args {
 		if i > 0 {
-			fmt.Print(" ")
+			textio.BufferedStdout.WriteByte(' ')
 		}
-		fmt.Print(shell.Unescape(arg))
+		textio.BufferedStdout.WriteString(shell.Unescape(arg))
 	}
 }
 
 func UnshescapeStdin(files []string) {
 	err := textio.ReadFiles(files, func(line []byte, lineNo int, filename string) error {
 		line, nl := textio.Chomped(line)
-		fmt.Print(string(shell.UnescapeBytes(line)), string(nl))
+		textio.BufferedStdout.Write(shell.UnescapeBytes(line))
+		textio.BufferedStdout.Write(nl)
 		return nil
 	})
 	common.Check(err, "Unable to read file")

@@ -2,15 +2,10 @@
 package main
 
 import (
-	"fmt"
 	"github.com/omakoto/go-common/src/common"
+	"github.com/omakoto/go-common/src/textio"
 	"github.com/omakoto/gocmds/src/cmd/shescapecommon"
-	"github.com/pborman/getopt/v2"
-)
-
-var (
-	noNewline = getopt.BoolLong("no-newline", 'n', "Don't print newline.")
-	fromStdin = getopt.BoolLong("stdin", 's', "Read input from stdin.")
+	"os"
 )
 
 func main() {
@@ -18,15 +13,7 @@ func main() {
 }
 
 func realMain() int {
-	getopt.Parse()
-
-	if !*fromStdin {
-		shescapecommon.UnshescapeNoNewline(getopt.Args())
-		if !*noNewline {
-			fmt.Println()
-		}
-	} else {
-		shescapecommon.UnshescapeStdin(getopt.Args())
-	}
+	shescapecommon.UnshescapeNoNewline(os.Args[1:])
+	textio.BufferedStdout.WriteByte('\n')
 	return 0
 }
