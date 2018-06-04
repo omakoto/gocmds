@@ -22,21 +22,20 @@ func main() {
 func realMain() int {
 	getopt.Parse()
 
-	sh := shell.GetSupportedProxy()
-	common.OrFatalf(sh != nil, "Unsupported shell.\n")
+	sh := shell.MustGetSupportedProxy()
 
 	commandLine, pos := sh.GetCommandLine()
 
 	newWord := strings.Join(getopt.Args(), " ")
 
-	commandLine, pos = doTransform(commandLine, pos, newWord, *insert, *escape)
+	commandLine, pos = doTransform(sh, commandLine, pos, newWord, *insert, *escape)
 
 	sh.PrintUpdateCommandLineEvalStr(commandLine, pos)
 
 	return 0
 }
 
-func doTransform(original string, pos int, newWord string, insert, escape bool) (string, int) {
+func doTransform(sh shell.Proxy, original string, pos int, newWord string, insert, escape bool) (string, int) {
 	if escape {
 		newWord = shell.Escape(newWord)
 	}
@@ -44,7 +43,7 @@ func doTransform(original string, pos int, newWord string, insert, escape bool) 
 	if insert {
 		original, pos = insertWord(original, pos, newWord)
 	} else {
-		original, pos = replaceWord(original, pos, newWord)
+		original, pos = replaceWord(sh, original, pos, newWord)
 	}
 
 	return original, pos
@@ -63,8 +62,8 @@ func insertWord(original string, pos int, newWord string) (string, int) {
 	return ret, pos
 }
 
-func replaceWord(original string, pos int, newWord string) (string, int) {
-	tokens := shell.SplitToTokens(original)
+func replaceWord(sh shell.Proxy, original string, pos int, newWord string) (string, int) {
+	tokens := sh.Split(original)
 
 	// 0     10    20   30
 	// aaa   bbb   ccc  ddd

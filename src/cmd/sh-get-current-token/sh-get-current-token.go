@@ -37,8 +37,7 @@ func main() {
 func realMain() int {
 	getopt.Parse()
 
-	sh := shell.GetSupportedProxy()
-	common.OrFatalf(sh != nil, "Unsupported shell.\n")
+	sh := shell.MustGetSupportedProxy()
 
 	commandLine, pos := sh.GetCommandLine()
 	tokens := sh.Split(commandLine)

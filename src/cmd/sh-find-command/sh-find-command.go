@@ -1,21 +1,6 @@
 // Intended to be used with "bind -x" on bash.
-// Prints the current token in stdout.
-// Example: When the command line is "less  /etc/fstab", and when the cursor is at...
-// less  /etc/fstab
-// ^1 ^2   ^3  ^4
-// - ^1:
-//      With -f: "less"
-//        No -f: ""
-// - ^2:
-//      With -f: "less"
-//        No -f: "less"
-// - ^3:
-//      With -f: "/etc/fstab"
-//        No -f: "/e"
-// - ^4:
-//      With -f: "/etc/fstab"
-//        No -f: "/etc/fstab"
-
+// Prints the executable command name from the command line.
+// If the command line is a pipeline, then print the one that's right before the cursor.
 package main
 
 import (
@@ -30,12 +15,19 @@ func main() {
 }
 
 func realMain() int {
-	sh := shell.GetSupportedProxy()
-	common.OrFatalf(sh != nil, "Unsupported shell.\n")
+	sh := shell.MustGetSupportedProxy()
 
 	commandLine, pos := sh.GetCommandLine()
 	tokens := sh.Split(commandLine)
+	commandName := findCommandName(tokens, pos)
 
+	if commandName != "" {
+		fmt.Print(commandName, "\n")
+	}
+	return 0
+}
+
+func findCommandName(tokens []shell.Token, pos int) string {
 	var command shell.Token
 	first := true
 	for _, t := range tokens {
@@ -51,8 +43,5 @@ func realMain() int {
 			first = false
 		}
 	}
-	if command.Word != "" {
-		fmt.Print(command.Word, "\n")
-	}
-	return 0
+	return command.Word
 }
