@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/omakoto/go-common/src/shell"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -28,7 +29,7 @@ func TestFindToken_insert(t *testing.T) {
 		{`abc def`, 0, `X Z`, true, `'X Z'abc def`, 5},
 	}
 	for _, v := range inputs {
-		result, pos := doTransform(v.source, v.pos, v.newWord, true, v.unescape)
+		result, pos := doTransform(&shell.BashProxy{}, v.source, v.pos, v.newWord, true, v.unescape)
 
 		msg := fmt.Sprintf("Source=%s Pos=%d Word=%s Unescape=%v", v.source, v.pos, v.newWord, v.unescape)
 		assert.Equal(t, v.expected, result, msg)
@@ -66,7 +67,7 @@ func TestFindToken_replace(t *testing.T) {
 		{`abc def`, 1, `X  Y`, true, `'X  Y' def`, 6},
 	}
 	for _, v := range inputs {
-		result, pos := doTransform(v.source, v.pos, v.newWord, false, v.unescape)
+		result, pos := doTransform(&shell.BashProxy{}, v.source, v.pos, v.newWord, false, v.unescape)
 
 		msg := fmt.Sprintf("Source=%s Pos=%d Word=%s Unescape=%v", v.source, v.pos, v.newWord, v.unescape)
 		assert.Equal(t, v.expected, result, msg)
