@@ -9,11 +9,13 @@ import (
 	"github.com/omakoto/go-common/src/textio"
 	"github.com/pborman/getopt/v2"
 	"io"
+	"strings"
 )
 
 var (
-	index = getopt.BoolLong("index", 'i', "Insert rather than replace")
-	null  = getopt.BoolLong("null", '0', "Escape given word before replace")
+	index = getopt.BoolLong("index", 'i', "Show indexes")
+	null  = getopt.BoolLong("null", '0', "Use \\0 to terminate elements")
+	args = getopt.BoolLong("args", 'a', "Get command line from os.Args")
 )
 
 func main() {
@@ -27,14 +29,21 @@ func realMain() int {
 	if *null {
 		eol = 0
 	}
-	printWords(textio.BufferedStdout, eol, *index)
+	printWords(textio.BufferedStdout, eol, *index, *args)
 
 	return 0
 }
 
-func printWords(out io.Writer, eol byte, showIndex bool) {
+func printWords(out io.Writer, eol byte, showIndex bool, useArgs bool) {
 	sh := shell.MustGetSupportedProxy()
-	commandLine, _ := sh.GetCommandLine()
+
+	commandLine := ""
+
+	if useArgs {
+		commandLine = strings.Join(getopt.Args(), " ")
+	} else {
+		commandLine, _ = sh.GetCommandLine()
+	}
 	tokens := sh.Split(commandLine)
 
 	eolBytes := append(make([]byte, 0), eol)
