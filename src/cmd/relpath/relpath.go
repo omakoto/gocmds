@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"github.com/omakoto/go-common/src/common"
+	"github.com/omakoto/go-common/src/utils"
 	"github.com/pborman/getopt/v2"
 	"os"
 	"path/filepath"
@@ -38,7 +39,7 @@ func realMain() int {
 
 	ret := 0
 	for _, file := range getopt.Args() {
-		rel, err := filepath.Rel(cwd, file)
+		rel, err := filepath.Rel(cwd, utils.HomeExpanded(file))
 		if err != nil {
 			common.Warnf("%s\n", err)
 			ret = 1

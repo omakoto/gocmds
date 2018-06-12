@@ -9,13 +9,16 @@ import (
 	"github.com/omakoto/go-common/src/textio"
 	"github.com/pborman/getopt/v2"
 	"io"
+	"io/ioutil"
+	"os"
 	"strings"
 )
 
 var (
-	index = getopt.BoolLong("index", 'i', "Show indexes")
-	null  = getopt.BoolLong("null", '0', "Use \\0 to terminate elements")
-	args = getopt.BoolLong("args", 'a', "Get command line from os.Args")
+	index   = getopt.BoolLong("index", 'i', "Show indexes")
+	null    = getopt.BoolLong("null", '0', "Use \\0 to terminate elements")
+	useArgs = getopt.BoolLong("args", 'a', "Get command line from os.Args")
+	stdin   = getopt.BoolLong("stdin", 0, "Read from stdin")
 )
 
 func main() {
@@ -29,17 +32,21 @@ func realMain() int {
 	if *null {
 		eol = 0
 	}
-	printWords(textio.BufferedStdout, eol, *index, *args)
+	printWords(textio.BufferedStdout, eol, *index)
 
 	return 0
 }
 
-func printWords(out io.Writer, eol byte, showIndex bool, useArgs bool) {
+func printWords(out io.Writer, eol byte, showIndex bool) {
 	sh := shell.MustGetSupportedProxy()
 
 	commandLine := ""
 
-	if useArgs {
+	if *stdin {
+		in, err := ioutil.ReadAll(os.Stdin)
+		common.Checke(err)
+		commandLine = string(in)
+	} else if *useArgs {
 		commandLine = strings.Join(getopt.Args(), " ")
 	} else {
 		commandLine, _ = sh.GetCommandLine()
