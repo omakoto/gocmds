@@ -36,7 +36,7 @@ func TestExtractLabeledData(t *testing.T) {
 		{"  abc ", "ab", true, "c"},
 		{"  abc 1  ", "ab", true, "c 1"},
 		{"  abc 1  ", "abc ", true, "1"},
-		{"  abc   1", "abc ", true, "1"},
+		{"  abc   1", "abc(def)? ", true, "1"},
 	}
 	for _, v := range inputs {
 		found, data := extractLabeledData(v.line, v.label)
