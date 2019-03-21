@@ -18,7 +18,7 @@ func FindGitTop(path string) (string, error) {
 			return path, nil
 		}
 		if path == "/" {
-			return "", fmt.Errorf("Git top directory not found")
+			return "", fmt.Errorf("git top directory not found")
 		}
 		path = filepath.Dir(path)
 	}
