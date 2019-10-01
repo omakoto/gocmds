@@ -2,6 +2,9 @@ module github.com/omakoto/gocmds
 
 go 1.13
 
+//replace github.com/omakoto/go-common => ../go-common
+//replace github.com/omakoto/bashcomp => ../bashcomp
+
 require (
 	github.com/omakoto/bashcomp v0.0.0-20160616051942-c0902e9f1d64
 	github.com/omakoto/go-common v0.0.0-20190929182938-7ec82e969da9
