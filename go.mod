@@ -1,6 +1,6 @@
 module github.com/omakoto/gocmds
 
-go 1.13
+go 1.14
 
 //replace github.com/omakoto/go-common => ../go-common
 //replace github.com/omakoto/bashcomp => ../bashcomp
