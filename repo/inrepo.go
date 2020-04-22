@@ -13,6 +13,10 @@ const EnvBuildTop = "ANDROID_BUILD_TOP"
 func FindRepoTop(path string) (string, error) {
 	atop := os.Getenv(EnvBuildTop)
 
+	if atop == "" {
+		return "", fmt.Errorf("%s not set", EnvBuildTop)
+	}
+
 	path, err := filepath.Abs(path)
 	if err != nil {
 		return "", err
@@ -20,7 +24,7 @@ func FindRepoTop(path string) (string, error) {
 	for {
 		s, err := os.Stat(filepath.Join(path, ".repo"))
 		if err == nil && s.IsDir() {
-			if atop != "" && !fileutils.SamePath(atop, path) {
+			if !fileutils.SamePath(atop, path) {
 				return "", fmt.Errorf("not in $%s", EnvBuildTop)
 			}
 			return path, nil
