@@ -49,7 +49,7 @@ func printWords(out io.Writer, eol byte, showIndex bool) {
 	} else if *useArgs {
 		commandLine = strings.Join(getopt.Args(), " ")
 	} else {
-		commandLine, _ = sh.GetCommandLine()
+		commandLine, _ = sh.GetCommandL	ine()
 	}
 	tokens := sh.Split(commandLine)
 
