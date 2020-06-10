@@ -11,6 +11,10 @@ import (
 	"path/filepath"
 )
 
+var (
+	basePath = getopt.StringLong("base-path", 'p', "Base directory")
+)
+
 func init() {
 	getopt.SetUsage(usage)
 }
@@ -19,7 +23,7 @@ func usage() {
 	os.Stderr.WriteString(`
 relpath: Convert PATHs to relative paths
 
-Usage: relpath PATH [...]
+Usage: relpath [-p BASE-DIR] PATH [...]
 
 `)
 	getopt.CommandLine.PrintOptions(os.Stderr)
@@ -32,14 +36,18 @@ func main() {
 func realMain() int {
 	getopt.Parse()
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		panic(err)
+	base := *basePath
+	if base == "" {
+		cwd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		base = cwd
 	}
 
 	ret := 0
 	for _, file := range getopt.Args() {
-		rel, err := filepath.Rel(cwd, utils.HomeExpanded(file))
+		rel, err := filepath.Rel(base, utils.HomeExpanded(file))
 		if err != nil {
 			common.Warnf("%s\n", err)
 			ret = 1
