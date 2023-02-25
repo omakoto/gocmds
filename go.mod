@@ -13,6 +13,5 @@ require (
 	github.com/shopspring/decimal v0.0.0-20190905144223-a36b5d85f337
 	github.com/stretchr/testify v1.4.0
 	github.com/ungerik/go-dry v0.0.0-20180411133923-654ae31114c8
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
-	golang.org/x/sys v0.0.0-20190927073244-c990c680b611 // indirect
+	golang.org/x/crypto v0.1.0
 )
