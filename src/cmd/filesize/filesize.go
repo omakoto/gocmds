@@ -1,4 +1,3 @@
-///bin/true; exec /usr/bin/env go run "$0" "$@"
 package main
 
 // Show sizes of all files under given directories.

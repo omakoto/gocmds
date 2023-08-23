@@ -1,10 +1,11 @@
-///bin/true; exec /usr/bin/env go run "$0" "$@"
+// bin/true; exec /usr/bin/env go run "$0" "$@"
 package main
 
 import (
+	"os"
+
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/gocmds/src/cmd/shescapecommon"
-	"os"
 )
 
 func main() {

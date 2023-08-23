@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"github.com/omakoto/go-common/src/common"
 	"github.com/pkg/errors"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
@@ -46,7 +46,7 @@ func LoadManifestFromFile(file string) (manifest *Manifest, root string, err err
 	}
 
 	// Find all projects.
-	manifestRaw, err := ioutil.ReadFile(filepath.Join(root, file))
+	manifestRaw, err := os.ReadFile(filepath.Join(root, file))
 	if err != nil {
 		return nil, "", errors.Wrap(err, "failed to read manifest.xml")
 	}

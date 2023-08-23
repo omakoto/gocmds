@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/omakoto/bashcomp"
 	"github.com/omakoto/go-common/src/common"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 )
@@ -25,7 +25,7 @@ func main() {
 
 	bashcomp.HandleBashCompletion()
 
-	bytes, err := ioutil.ReadAll(os.Stdin)
+	bytes, err := io.ReadAll(os.Stdin)
 	common.Check(err, "ReadAll failed")
 
 	var f interface{}

@@ -7,9 +7,8 @@ import (
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/go-common/src/shell"
 	"github.com/omakoto/go-common/src/textio"
-	"github.com/pborman/getopt/v2"
+	"github.com/pborman/getopt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -43,7 +42,7 @@ func printWords(out io.Writer, eol byte, showIndex bool) {
 	commandLine := ""
 
 	if *stdin {
-		in, err := ioutil.ReadAll(os.Stdin)
+		in, err := io.ReadAll(os.Stdin)
 		common.Checke(err)
 		commandLine = string(in)
 	} else if *useArgs {

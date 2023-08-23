@@ -1,16 +1,15 @@
-///bin/true; exec /usr/bin/env go run "$0" "$@"
-
 package main
 
 import (
-	"github.com/omakoto/go-common/src/common"
-	"github.com/omakoto/gocmds/src/cmd/ffind/printer"
-	"github.com/pborman/getopt/v2"
 	"os"
 	"path"
 	"runtime"
 	"sort"
 	"sync"
+
+	"github.com/omakoto/go-common/src/common"
+	"github.com/omakoto/gocmds/src/cmd/ffind/printer"
+	"github.com/pborman/getopt/v2"
 )
 
 const maxPara = 32

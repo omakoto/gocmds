@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/csv"
 	"github.com/omakoto/go-common/src/common"
-	"github.com/pborman/getopt/v2"
+	"github.com/pborman/getopt"
 	"image"
 	"image/color"
 	"image/png"
@@ -28,8 +28,7 @@ func generateGrayscaleImage(values [][]string) image.Image {
 	w := len(values)
 	image := image.NewGray(image.Rectangle{image.Point{0, 0}, image.Point{w, h}})
 
-	var fmatrix [][]float64
-	fmatrix = make([][]float64, h)
+	fmatrix := make([][]float64, h)
 	var max, v float64
 	var err error
 

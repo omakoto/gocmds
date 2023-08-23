@@ -4,9 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/omakoto/bashcomp"
-	"github.com/omakoto/go-common/src/common"
-	"github.com/omakoto/gocmds/src/cmd/oauther/oauth"
 	"log"
 	"net"
 	"net/http"
@@ -15,6 +12,10 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+
+	"github.com/omakoto/bashcomp"
+	"github.com/omakoto/go-common/src/common"
+	"github.com/omakoto/gocmds/src/cmd/oauther/oauth"
 )
 
 var (
@@ -31,7 +32,8 @@ const (
 
 // openURL opens a browser window to the specified location.
 // This code originally appeared at:
-//   http://stackoverflow.com/questions/10377243/how-can-i-launch-a-process-that-is-not-a-file-in-go
+//
+//	http://stackoverflow.com/questions/10377243/how-can-i-launch-a-process-that-is-not-a-file-in-go
 func openURL(url string) error {
 	var err error
 	switch runtime.GOOS {
