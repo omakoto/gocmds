@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/csv"
 	"github.com/omakoto/go-common/src/common"
-	"github.com/pborman/getopt"
+	"github.com/pborman/getopt/v2"
 	"image"
 	"image/color"
 	"image/png"

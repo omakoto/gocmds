@@ -7,7 +7,7 @@ import (
 	"github.com/omakoto/go-common/src/common"
 	"github.com/omakoto/go-common/src/shell"
 	"github.com/omakoto/go-common/src/textio"
-	"github.com/pborman/getopt"
+	"github.com/pborman/getopt/v2"
 	"io"
 	"os"
 	"strings"
