@@ -16,11 +16,13 @@ timessub -f /dev/shm/$$-post.txt /dev/shm/$$-pre.txt
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/omakoto/go-common/src/common"
+	"github.com/omakoto/go-common/src/must"
 	"github.com/pborman/getopt"
 )
 
@@ -53,10 +55,8 @@ func parseTime(time string) float64 {
 		common.Fatalf("Invalid input '%s' -- no 'm'", time)
 	}
 
-	seconds, err := strconv.ParseFloat(fields[1], 64)
-	common.CheckPanice(err)
-
-	minutes, err := strconv.Atoi(fields[0])
+	seconds := must.Must2(strconv.ParseFloat(fields[1], 64))
+	minutes := must.Must2(strconv.Atoi(fields[0]))
 
 	return float64(minutes*60) + seconds
 }
@@ -65,6 +65,18 @@ func realMain() int {
 	getopt.Parse()
 
 	args := getopt.Args()
+	if *fromFile {
+		return doFiles(args)
+	} else {
+		return doArgs(args)
+	}
+}
+
+func print(newUser, newSys, oldUser, oldSys float64) {
+	fmt.Printf("times_user=%0.6f\ntimes_sys=%0.6f\n", (newUser - oldUser), (newSys - oldSys))
+}
+
+func doArgs(args []string) int {
 	if len(args) != 8 {
 		fmt.Fprintf(os.Stderr, "Usage: timessub $(times [new]) $(times [old])\n")
 		return 1
@@ -75,7 +87,33 @@ func realMain() int {
 	oldUser := parseTime(args[6])
 	oldSys := parseTime(args[7])
 
-	fmt.Printf("times_user=%0.6f\ntimes_sys=%0.6f\n", (newUser - oldUser), (newSys - oldSys))
+	print(newUser, newSys, oldUser, oldSys)
+
+	return 0
+}
+
+func readFile(file string) (float64, float64) {
+	f := must.Must2(os.Open(file))
+	defer f.Close()
+
+	s := string(must.Must2(io.ReadAll(f)))
+
+	fields := strings.Fields(s)
+	if len(fields) < 4 {
+		common.Fatalf("Unable to parse '%s': content='%s'", file, s)
+	}
+	return parseTime(fields[2]), parseTime(fields[3])
+}
+
+func doFiles(args []string) int {
+	if len(args) != 2 {
+		fmt.Fprintf(os.Stderr, "Usage: timessub -f [new-times-file] [old-times-file]\n")
+		return 1
+	}
+	newUser, newSys := readFile(args[0])
+	oldUser, oldSys := readFile(args[1])
+
+	print(newUser, newSys, oldUser, oldSys)
 
 	return 0
 }
