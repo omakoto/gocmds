@@ -37,7 +37,8 @@ $ times
 */
 
 var (
-	fromFile = getopt.BoolLong("file", 'f', "read old / new values from files")
+	fromFile  = getopt.BoolLong("file", 'f', "read old / new values from files")
+	varPrefix = getopt.StringLong("var-prefix", 'p', "", "prefix for var names")
 )
 
 func main() {
@@ -73,7 +74,7 @@ func realMain() int {
 }
 
 func print(newUser, newSys, oldUser, oldSys float64) {
-	fmt.Printf("times_user=%0.6f\ntimes_sys=%0.6f\n", (newUser - oldUser), (newSys - oldSys))
+	fmt.Printf("%stimes_user=%0.6f\n%stimes_sys=%0.6f\n", *varPrefix, (newUser - oldUser), *varPrefix, (newSys - oldSys))
 }
 
 func doArgs(args []string) int {
