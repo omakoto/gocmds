@@ -16,10 +16,16 @@ require (
 )
 
 require (
+	github.com/omakoto/go-common v0.0.0-20250201034257-33e3d2de7676
+	github.com/pborman/getopt v1.1.0
+)
+
+require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/omakoto/go-common v0.0.0-20250201034257-33e3d2de7676 // indirect
-	github.com/pborman/getopt v1.1.0 // indirect
+	github.com/otiai10/copy v1.14.1 // indirect
+	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
-	gopkg.in/yaml.v2 v2.2.2 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
