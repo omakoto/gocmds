@@ -23,8 +23,9 @@ func defaultPara() int {
 }
 
 var (
-	showFiles = getopt.BoolLong("file", 'f', "Print files only")
-	showDirs  = getopt.BoolLong("dir", 'd', "Print directories only")
+	showFiles      = getopt.BoolLong("file", 'f', "Print files only")
+	showDirs       = getopt.BoolLong("dir", 'd', "Print directories only")
+	followSymlinks = getopt.BoolLong("symlink", 'L', "Follow symlinks")
 
 	quiet = getopt.BoolLong("quiet", 'q', "Don't show warnings")
 
@@ -34,6 +35,8 @@ var (
 
 	numBacklog = 0
 	cond       = sync.NewCond(&sync.Mutex{})
+
+	statFunc func(string) (os.FileInfo, error)
 )
 
 func main() {
@@ -69,6 +72,12 @@ func realMain() int {
 	if !(*showFiles || *showDirs) {
 		*showFiles = true
 		*showDirs = true
+	}
+
+	if *followSymlinks {
+		statFunc = os.Stat
+	} else {
+		statFunc = os.Lstat
 	}
 
 	common.Debugf("-j=%d\n", *para)
@@ -156,7 +165,7 @@ func listDir(dir string, files, dirs []string) ([]string, []string) {
 	for _, c := range children {
 		p := path.Join(dir, c)
 		common.Debugf("  %s\n", p)
-		s, err := os.Stat(p)
+		s, err := statFunc(p)
 		if err != nil {
 			common.Warnf("Unable to stat %s\n", p)
 			continue
