@@ -26,45 +26,44 @@ var (
 	showFiles      = getopt.BoolLong("file", 'f', "Print files only")
 	showDirs       = getopt.BoolLong("dir", 'd', "Print directories only")
 	followSymlinks = getopt.BoolLong("symlink", 'L', "Follow symlinks")
+	quiet          = getopt.BoolLong("quiet", 'q', "Don't show warnings")
+	para           = getopt.IntLong("para", 'j', defaultPara(), "Number of goroutines")
+	noSkip         = getopt.BoolLong("no-skip", 'a', "Don't skip .git, etc")
 
-	quiet = getopt.BoolLong("quiet", 'q', "Don't show warnings")
-
-	para = getopt.IntLong("para", 'j', defaultPara(), "Number of goroutines")
+	excludeDirs []string
+	excludeMap  map[string]bool
 
 	ch = make(chan string, 100*1024)
 
 	numBacklog = 0
 	cond       = sync.NewCond(&sync.Mutex{})
 
-	statFunc func(string) (os.FileInfo, error)
+	statFunc    func(string) (os.FileInfo, error)
+	includeTest func(fullPath string) bool
+	skipTest    func(dirName string) bool
 )
+
+func init() {
+	getopt.FlagLong(&excludeDirs, "exclude", 'x', "directories to exclude")
+}
 
 func main() {
 	common.RunAndExit(realMain)
 }
 
-func startWorker() {
-	go func() {
-		files := make([]string, 0, 1024)
-		dirs := make([]string, 0, 1024)
-
-		for {
-			dir := <-ch
-			//common.Debugf("Pop:  %s\n", dir)
-			doFindDir(dir, files, dirs)
-
-			cond.L.Lock()
-			numBacklog--
-			//common.Debugf("Done: %s [%d]\n", dir, numBacklog)
-			if numBacklog <= 0 {
-				cond.Signal()
-			}
-			cond.L.Unlock()
+func mapToTest(m map[string]bool, def bool) func(string) bool {
+	if len(m) == 0 {
+		return func(string) bool {
+			return def
 		}
-	}()
+	} else {
+		return func(s string) bool {
+			return m[s]
+		}
+	}
 }
 
-func realMain() int {
+func initialize() {
 	getopt.Parse()
 
 	common.Quiet = *quiet
@@ -80,7 +79,36 @@ func realMain() int {
 		statFunc = os.Lstat
 	}
 
-	common.Debugf("-j=%d\n", *para)
+	skipTest = func(dirName string) bool {
+		if dirName == ".git" || dirName == ".repo" {
+			return false
+		}
+		return true
+	}
+	if *noSkip {
+		skipTest = func(dirName string) bool {
+			return true
+		}
+	}
+
+	excludeMap = make(map[string]bool)
+
+	for _, d := range excludeDirs {
+		excludeMap[d] = true
+	}
+
+	et := mapToTest(excludeMap, false)
+
+	includeTest = func(fullPath string) bool {
+		return !et(fullPath)
+	}
+
+	//common.Debugf("-j=%d\n", *para)
+
+}
+
+func realMain() int {
+	initialize()
 
 	for i := 0; i < *para; i++ {
 		startWorker()
@@ -104,6 +132,27 @@ func realMain() int {
 	cond.L.Unlock()
 
 	return 0
+}
+
+func startWorker() {
+	go func() {
+		files := make([]string, 0, 1024)
+		dirs := make([]string, 0, 1024)
+
+		for {
+			dir := <-ch
+			//common.Debugf("Pop:  %s\n", dir)
+			doFindDir(dir, files, dirs)
+
+			cond.L.Lock()
+			numBacklog--
+			//common.Debugf("Done: %s [%d]\n", dir, numBacklog)
+			if numBacklog <= 0 {
+				cond.Signal()
+			}
+			cond.L.Unlock()
+		}
+	}()
 }
 
 func pushDir(dir string) {
@@ -135,12 +184,9 @@ func doFindDir(dir string, files, dirs []string) {
 
 	files, dirs = listDir(dir, files, dirs)
 
-	if *showDirs {
-		printer.PrintStrings(dirs)
-	}
-	if *showFiles {
-		printer.PrintStrings(files)
-	}
+	printer.PrintStrings(dirs)
+	printer.PrintStrings(files)
+
 	for _, e := range dirs {
 		pushDir(e)
 	}
@@ -163,17 +209,24 @@ func listDir(dir string, files, dirs []string) ([]string, []string) {
 	sort.Strings(children)
 
 	for _, c := range children {
+		if !skipTest(c) {
+			continue
+		}
 		p := path.Join(dir, c)
-		common.Debugf("  %s\n", p)
+		//common.Debugf("  %s\n", p)
 		s, err := statFunc(p)
 		if err != nil {
 			common.Warnf("Unable to stat %s\n", p)
 			continue
 		}
 		if s.IsDir() {
-			dirs = append(dirs, p)
+			if *showDirs && includeTest(p) {
+				dirs = append(dirs, p)
+			}
 		} else {
-			files = append(files, p)
+			if *showFiles {
+				files = append(files, p)
+			}
 		}
 	}
 	return files, dirs
