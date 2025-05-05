@@ -12,7 +12,7 @@ import (
 	"github.com/pborman/getopt/v2"
 )
 
-const maxPara = 4
+const maxPara = 16
 
 func defaultPara() int {
 	v := runtime.NumCPU() * 4
