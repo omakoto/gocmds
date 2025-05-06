@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"runtime"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/omakoto/go-common/src/common"
@@ -34,8 +35,8 @@ var (
 	excludeDirs []string
 	excludeMap  map[string]bool
 
-	skipPatterns   []string
-	skipPatternsRe []*regexp.Regexp
+	skipPatterns []string
+	skipRe       *regexp.Regexp
 
 	ch = make(chan string, 100*1024)
 
@@ -96,18 +97,14 @@ func initialize() {
 		}
 	}
 
-	for _, pat := range skipPatterns {
-		skipPatternsRe = append(skipPatternsRe, regexp.MustCompile(pat))
-	}
+	skipRe = regexp.MustCompile("(" + strings.Join(skipPatterns, "|") + ")")
 
 	skipTest = func(dirName string) bool {
 		if !gitSkipTest(dirName) {
 			return false
 		}
-		for _, pat := range skipPatternsRe {
-			if pat.MatchString(dirName) {
-				return false
-			}
+		if skipRe.MatchString(dirName) {
+			return false
 		}
 
 		return true
