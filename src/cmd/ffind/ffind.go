@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path"
+	"regexp"
 	"runtime"
 	"sort"
 	"sync"
@@ -33,6 +34,9 @@ var (
 	excludeDirs []string
 	excludeMap  map[string]bool
 
+	skipPatterns   []string
+	skipPatternsRe []*regexp.Regexp
+
 	ch = make(chan string, 100*1024)
 
 	numBacklog = 0
@@ -44,7 +48,8 @@ var (
 )
 
 func init() {
-	getopt.FlagLong(&excludeDirs, "exclude", 'x', "directories to exclude")
+	getopt.FlagLong(&excludeDirs, "exclude", 'x', "directories to exclude in full path")
+	getopt.FlagLong(&skipPatterns, "ignore", 'i', "names of the directories to skip")
 }
 
 func main() {
@@ -79,16 +84,33 @@ func initialize() {
 		statFunc = os.Lstat
 	}
 
-	skipTest = func(dirName string) bool {
+	gitSkipTest := func(dirName string) bool {
 		if dirName == ".git" || dirName == ".repo" {
 			return false
 		}
 		return true
 	}
 	if *noSkip {
-		skipTest = func(dirName string) bool {
+		gitSkipTest = func(dirName string) bool {
 			return true
 		}
+	}
+
+	for _, pat := range skipPatterns {
+		skipPatternsRe = append(skipPatternsRe, regexp.MustCompile(pat))
+	}
+
+	skipTest = func(dirName string) bool {
+		if !gitSkipTest(dirName) {
+			return false
+		}
+		for _, pat := range skipPatternsRe {
+			if pat.MatchString(dirName) {
+				return false
+			}
+		}
+
+		return true
 	}
 
 	excludeMap = make(map[string]bool)
@@ -209,9 +231,6 @@ func listDir(dir string, files, dirs []string) ([]string, []string) {
 	sort.Strings(children)
 
 	for _, c := range children {
-		if !skipTest(c) {
-			continue
-		}
 		p := path.Join(dir, c)
 		//common.Debugf("  %s\n", p)
 		s, err := statFunc(p)
@@ -220,6 +239,9 @@ func listDir(dir string, files, dirs []string) ([]string, []string) {
 			continue
 		}
 		if s.IsDir() {
+			if !skipTest(c) {
+				continue
+			}
 			if *showDirs && includeTest(p) {
 				dirs = append(dirs, p)
 			}
