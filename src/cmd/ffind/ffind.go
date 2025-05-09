@@ -45,7 +45,7 @@ var (
 
 	statFunc    func(string) (os.FileInfo, error)
 	includeTest func(fullPath string) bool
-	skipTest    func(dirName string) bool
+	shouldSkip  func(dirName string) bool
 )
 
 func init() {
@@ -85,29 +85,37 @@ func initialize() {
 		statFunc = os.Lstat
 	}
 
-	gitSkipTest := func(dirName string) bool {
+	shouldSkipForGit := func(dirName string) bool {
 		if dirName == ".git" || dirName == ".repo" {
-			return false
-		}
-		return true
-	}
-	if *noSkip {
-		gitSkipTest = func(dirName string) bool {
 			return true
 		}
+		return false
+	}
+	if *noSkip {
+		shouldSkipForGit = func(dirName string) bool {
+			return false
+		}
 	}
 
-	skipRe = regexp.MustCompile("(" + strings.Join(skipPatterns, "|") + ")")
-
-	skipTest = func(dirName string) bool {
-		if !gitSkipTest(dirName) {
-			return false
+	shouldSkipForIgnore := func(dirName string) bool {
+		return false
+	}
+	if len(skipPatterns) > 0 {
+		skipRe = regexp.MustCompile("(" + strings.Join(skipPatterns, "|") + ")")
+		shouldSkipForIgnore = func(dirName string) bool {
+			return skipRe.MatchString(dirName)
 		}
-		if skipRe.MatchString(dirName) {
-			return false
+	}
+
+	shouldSkip = func(dirName string) bool {
+		if shouldSkipForGit(dirName) {
+			return true
+		}
+		if shouldSkipForIgnore(dirName) {
+			return true
 		}
 
-		return true
+		return false
 	}
 
 	excludeMap = make(map[string]bool)
@@ -229,16 +237,16 @@ func listDir(dir string, files, dirs []string) ([]string, []string) {
 
 	for _, c := range children {
 		p := path.Join(dir, c)
-		//common.Debugf("  %s\n", p)
+		common.Debugf("  %s - %s\n", dir, c)
 		s, err := statFunc(p)
 		if err != nil {
 			common.Warnf("Unable to stat %s\n", p)
 			continue
 		}
+		if shouldSkip(c) {
+			continue
+		}
 		if s.IsDir() {
-			if !skipTest(c) {
-				continue
-			}
 			if *showDirs && includeTest(p) {
 				dirs = append(dirs, p)
 			}
