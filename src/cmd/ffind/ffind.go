@@ -24,6 +24,11 @@ func defaultPara() int {
 	return maxPara
 }
 
+type node struct {
+	dir   string
+	depth int
+}
+
 var (
 	showFiles      = getopt.BoolLong("file", 'f', "Print files only")
 	showDirs       = getopt.BoolLong("dir", 'd', "Print directories only")
@@ -31,6 +36,7 @@ var (
 	quiet          = getopt.BoolLong("quiet", 'q', "Don't show warnings")
 	para           = getopt.IntLong("para", 'j', defaultPara(), "Number of goroutines")
 	noSkip         = getopt.BoolLong("no-skip", 'a', "Don't skip .git, etc")
+	maxDepth       = getopt.IntLong("max-depth", 'm', 99999, "Max depth")
 
 	excludeDirs []string
 	excludeMap  map[string]bool
@@ -38,7 +44,7 @@ var (
 	skipPatterns []string
 	skipRe       *regexp.Regexp
 
-	ch = make(chan string, 100*1024)
+	ch = make(chan node, 100*1024)
 
 	numBacklog = 0
 	cond       = sync.NewCond(&sync.Mutex{})
@@ -145,10 +151,10 @@ func realMain() int {
 		dir, err := os.Getwd()
 		common.Check(err, "Getwd failed")
 
-		pushDir(dir)
+		pushDir(dir, 0)
 	} else {
 		for _, dir := range getopt.Args() {
-			pushDir(dir)
+			pushDir(dir, 0)
 		}
 	}
 
@@ -167,9 +173,9 @@ func startWorker() {
 		dirs := make([]string, 0, 1024)
 
 		for {
-			dir := <-ch
+			n := <-ch
 			//common.Debugf("Pop:  %s\n", dir)
-			doFindDir(dir, files, dirs)
+			doFindDir(n, files, dirs)
 
 			cond.L.Lock()
 			numBacklog--
@@ -182,7 +188,7 @@ func startWorker() {
 	}()
 }
 
-func pushDir(dir string) {
+func pushDir(dir string, depth int) {
 	cond.L.Lock()
 	//common.Debugf("Push: %s [%d]\n", dir, numBacklog)
 	numBacklog++
@@ -190,7 +196,7 @@ func pushDir(dir string) {
 
 	for {
 		select {
-		case ch <- dir:
+		case ch <- node{dir, depth}:
 			return
 		default:
 			startWorker() // Just create more workers when buffer is full.
@@ -205,21 +211,25 @@ func clearStringSlice(s []string) []string {
 	return s[:0]
 }
 
-func doFindDir(dir string, files, dirs []string) {
+func doFindDir(n node, files, dirs []string) {
 	files = clearStringSlice(files)
 	dirs = clearStringSlice(dirs)
 
-	files, dirs = listDir(dir, files, dirs)
+	files, dirs = listDir(n, files, dirs)
 
 	printer.PrintStrings(dirs)
 	printer.PrintStrings(files)
 
-	for _, e := range dirs {
-		pushDir(e)
+	if n.depth+1 < *maxDepth {
+		for _, e := range dirs {
+			pushDir(e, n.depth+1)
+		}
 	}
 }
 
-func listDir(dir string, files, dirs []string) ([]string, []string) {
+func listDir(n node, files, dirs []string) ([]string, []string) {
+	//fmt.Printf("#%s\n", dir)
+	dir := n.dir
 	d, err := os.Open(dir)
 	if err != nil {
 		common.Warnf("Unable to open %s\n", dir)
