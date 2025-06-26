@@ -13,6 +13,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/ungerik/go-dry v0.0.0-20230805093253-df9da4cd3437
 	golang.org/x/term v0.11.0
+	github.com/russross/blackfriday/v2 v2.1.0
 )
 
 require (
