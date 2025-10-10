@@ -1,37 +1,29 @@
 module github.com/omakoto/gocmds
 
-go 1.23
-
-toolchain go1.23.4
+go 1.24.0
 
 require (
-	github.com/omakoto/bashcomp v0.0.0-20160616051942-c0902e9f1d64
+	github.com/ebitengine/oto/v3 v3.4.0
+	github.com/omakoto/bashcomp v0.0.0-20230902055810-4c2ce86f4b5a
+	github.com/omakoto/go-common v0.0.0-20250319034539-10a9de325fd9
+	github.com/pborman/getopt v1.1.0
 	// github.com/omakoto/go-common v0.0.0-20230902063303-08faef488d31
 	github.com/pborman/getopt/v2 v2.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday/v2 v2.1.0
-	github.com/shopspring/decimal v1.3.1
-	github.com/stretchr/testify v1.8.4
-	github.com/ungerik/go-dry v0.0.0-20230805093253-df9da4cd3437
-	golang.org/x/term v0.11.0
-)
-
-require (
-	github.com/faiface/beep v1.1.0
-	github.com/omakoto/go-common v0.0.0-20250201034257-33e3d2de7676
-	github.com/pborman/getopt v1.1.0
+	github.com/shopspring/decimal v1.4.0
+	github.com/stretchr/testify v1.11.1
+	github.com/ungerik/go-dry v0.0.0-20251009151624-113e1185c4ab
+	golang.org/x/term v0.36.0
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/hajimehoshi/oto v0.7.1 // indirect
+	github.com/ebitengine/purego v0.9.0 // indirect
 	github.com/otiai10/copy v1.14.1 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/exp v0.0.0-20190306152737-a1d7652674e8 // indirect
-	golang.org/x/image v0.0.0-20190227222117-0694c2d4d067 // indirect
-	golang.org/x/mobile v0.0.0-20190415191353-3e0bab5405d6 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
